@@ -14,6 +14,7 @@ from board import Board, Entity, generate_board, toroidal_distance_2
 from dataclasses import dataclass
 
 from random_player import RandomBot
+import queue
 
 AntMove = tuple[tuple[int, int], tuple[int, int]]
 
@@ -155,6 +156,15 @@ def validate(move: AntMove) -> bool:
         return True
     except:
         return False
+    
+def get_all(q: Queue) -> set[AntMove]:
+    out = set()
+    while not q.empty():
+        try:
+            out.add(q.get_nowait())
+        except queue.Empty:
+            break
+    return out
 
 
 def run_players(
@@ -174,13 +184,13 @@ def run_players(
     p2_process.start()
     p1_process.join(spec.time_per_turn)
     p2_process.join(spec.time_per_turn)
-    p1_moves = {p1_queue.get() for _ in range(p1_queue.qsize())}  # type: ignore
+    p1_moves = get_all(p1_queue)
     p1_moves = {
         (board.wrap(move[0]), board.wrap(move[1]))
         for move in p1_moves
         if validate(move)
     }
-    p2_moves = {p2_queue.get() for _ in range(p2_queue.qsize())}  # type: ignore
+    p2_moves = get_all(p2_queue)
     p2_moves = {
         (board.wrap(move[0]), board.wrap(move[1]))
         for move in p2_moves
@@ -188,6 +198,8 @@ def run_players(
     }
     p1_process.terminate()
     p2_process.terminate()
+    p1_queue.close()
+    p2_queue.close()
     return p1_moves, p2_moves
 
 
