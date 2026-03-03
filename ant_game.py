@@ -299,7 +299,7 @@ def harvest(board: Board, collect_radius: int, food: dict[int, int]) -> None:
 
 
 def main():
-    b = generate_board(60, 60, hills_per_player=3)
+    b = generate_board(60, 60, hills_per_player=2)
     spec = GameSpecification(b)
     play_game(spec, RandomBot, RandomBot)
 
